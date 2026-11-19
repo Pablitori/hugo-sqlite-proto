@@ -2,10 +2,11 @@
 """tools/index.py — content/**/*.md → SQLite (solo en build) → JSON estático.
 
 Filosofía Unix: hace UNA cosa. Lee Markdown, rellena build/site.db y la
-consulta con SQL para exportar dos ficheros:
+consulta con SQL para exportar tres ficheros:
 
   static/search.json  → lo consume static/search.js en el navegador
   data/tags.json      → lo consume Hugo en layouts/index.html
+  data/words.json     → total de palabras de los posts
 
 La base de datos NO se despliega: public/ contiene solo ficheros estáticos.
 
@@ -29,6 +30,7 @@ CONTENT = Path("content")
 DB = Path("build/site.db")
 OUT_SEARCH = Path("static/search.json")
 OUT_TAGS = Path("data/tags.json")
+OUT_WORDS = Path("data/words.json")
 
 SCHEMA = """
 CREATE TABLE posts (
@@ -42,6 +44,10 @@ CREATE TABLE tags (
   url TEXT NOT NULL REFERENCES posts(url),
   tag TEXT NOT NULL,
   PRIMARY KEY (url, tag)
+);
+CREATE TABLE words (
+  url TEXT PRIMARY KEY REFERENCES posts(url),
+  n INTEGER NOT NULL
 );
 """
 
@@ -65,7 +71,10 @@ FROM (
   SELECT tag, COUNT(*) AS total FROM tags GROUP BY tag ORDER BY total DESC, tag
 )
 """
-
+Q_WORDS = """
+SELECT json_object('total', COALESCE(SUM(n), 0))
+FROM words
+"""
 # --- funciones puras ---------------------------------------------------------
 
 def split_front_matter(text):
@@ -104,6 +113,9 @@ def plain(markdown):
     step = lambda s, pr: re.sub(pr[0], pr[1], s, flags=re.S | re.M)
     return reduce(step, CLEANERS, markdown).strip()
 
+
+def count_words(text):
+    return len(text.split())
 
 def shorten(text, n=160):
     return text if len(text) <= n else text[:n].rsplit(" ", 1)[0] + "…"
@@ -150,6 +162,10 @@ def build_db(pages):
     con.executemany(
         "INSERT OR IGNORE INTO tags(url, tag) VALUES (?, ?)",
         [(p["url"], t) for p in pages for t in p["tags"]])
+    con.executemany(
+        "INSERT INTO words(url, n) VALUES (?, ?)",
+        [(p["url"], count_words(p["text"]))
+         for p in pages if p["url"].startswith("/posts/")])
     con.commit()
     return con
 
@@ -166,8 +182,9 @@ def main():
     con = build_db(pages)
     export(con, Q_SEARCH, OUT_SEARCH)
     export(con, Q_TAGS, OUT_TAGS)
+    export(con, Q_WORDS, OUT_WORDS)
     con.close()
-    print(f"index: {len(pages)} páginas → {OUT_SEARCH}, {OUT_TAGS}")
+    print(f"index: {len(pages)} páginas → {OUT_SEARCH}, {OUT_TAGS}, {OUT_WORDS}")
 
 
 if __name__ == "__main__":
