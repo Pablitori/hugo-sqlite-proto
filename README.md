@@ -145,3 +145,49 @@ git log --format='%h %ad %s' --date=iso | head -20
 ```
 
 "Recuerda ... KISS!" :-)
+
+Mejoras realizadas en la práctica
+
+1. Compatibilidad con Hugo
+
+Se ha corregido la plantilla layouts/index.html, sustituyendo hugo.Data.tags por site.Data.tags para permitir que el proyecto funcione con Hugo 0.131.0.
+
+2. Nueva publicación sobre SQL
+
+Se ha añadido el archivo content/posts/aprendiendo-sql.md con la etiqueta sql.
+
+Al ejecutar make index, Python procesa la publicación, la introduce en SQLite y actualiza los archivos JSON. Esto permite que aparezca en el buscador y que se actualice automáticamente el contador de etiquetas.
+
+3. Contador de palabras mediante SQLite
+
+Se ha añadido una tabla words(url, n) a la base de datos SQLite para almacenar el número de palabras de cada publicación.
+
+La función count_words() cuenta las palabras del texto procesado. Posteriormente, una consulta SQL utiliza SUM(n) para calcular el total.
+
+El resultado se exporta a data/words.json y Hugo lo muestra en el pie de página mediante site.Data.words.total.
+
+También se han actualizado el Makefile y .gitignore para validar, limpiar e ignorar el nuevo JSON generado.
+
+4. Tiempo estimado de lectura
+
+Se ha añadido el tiempo estimado de lectura a las publicaciones mediante la propiedad .ReadingTime de Hugo.
+
+Esta mejora permite conocer aproximadamente cuánto se tarda en leer cada artículo sin necesidad de JavaScript ni de un servidor adicional.
+
+5. Funcionamiento del proyecto
+
+El flujo de generación es:
+
+Markdown → Python → SQLite → JSON → Hugo → HTML estático
+
+SQLite se utiliza únicamente durante la construcción del sitio. En producción se publican los archivos estáticos generados en public/.
+
+6. Comprobaciones
+
+Para comprobar el funcionamiento del proyecto se utilizan los siguientes comandos:
+
+make check
+make build
+make serve
+
+El proyecto debe superar estas comprobaciones antes de su entrega.
