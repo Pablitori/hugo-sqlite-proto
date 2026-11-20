@@ -2,6 +2,7 @@
 <article>
   <h1>{{ .Title }}</h1>
   {{ with .Date }}{{ if not .IsZero }}<p class="meta"><time datetime="{{ .Format "2006-01-02" }}">{{ .Format "2006-01-02" }}</time></p>{{ end }}{{ end }}
+  <p class="meta">Tiempo estimado de lectura: {{ .ReadingTime }} min</p>
   {{ .Content }}
   {{ with .Params.tags }}<p class="meta">{{ range . }}<a class="tag" href="{{ printf "tags/%s/" (. | urlize) | relURL }}">{{ . }}</a> {{ end }}</p>{{ end }}
 </article>
