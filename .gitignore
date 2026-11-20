@@ -8,3 +8,7 @@ build/
 static/search.json
 data/tags.json
 data/words.json
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
