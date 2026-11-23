@@ -191,3 +191,62 @@ make build
 make serve
 
 El proyecto debe superar estas comprobaciones antes de su entrega.
+
+
+P1.2 — Migración de Hugo + SQLite a Chyrp Lite + SQLite
+
+En esta práctica se ha migrado el contenido del prototipo Hugo a Chyrp Lite, utilizando SQLite como base de datos de una aplicación dinámica.
+
+Migración
+
+Se ha desarrollado el script tools/migrar.py, que lee las entradas Markdown de Hugo y las transforma al esquema de Chyrp Lite.
+
+Se han migrado cinco entradas, incluido un borrador. La migración se ha probado primero en modo simulación y después sobre una copia de la base de datos.
+
+También se ha comprobado la idempotencia: al repetir la migración no se crean entradas duplicadas.
+
+Comandos principales
+
+Ejecutar las pruebas automáticas:
+
+make test
+
+Simular la migración:
+
+make migrar DESTINO=/root/chyrp-datos/copia.sqlite SIMULACRO=1
+
+Ejecutar la migración:
+
+make migrar DESTINO=/root/chyrp-datos/copia.sqlite
+
+Importante: antes de repetir la migración real, hay que utilizar una copia adecuada de la base de datos. No es necesario volver a ejecutarla para comprobar esta entrega.
+
+Resultados
+
+Cinco entradas migradas correctamente.
+
+Migración idempotente.
+
+Doce pruebas automáticas superadas.
+
+Ejercicio 5: corrección del tratamiento de etiquetas numéricas.
+
+Ejercicio 6: comparación de consultas SQL sobre etiquetas.
+
+Mini-reto: creación y análisis de una entrada desde Chyrp Lite.
+
+Diferencia entre P1.1 y P1.2
+
+En la P1.1, SQLite se utilizaba durante la construcción del sitio:
+
+Markdown → Python → SQLite → JSON → Hugo → HTML estático
+
+En la P1.2, Chyrp Lite consulta SQLite mientras funciona:
+
+Navegador → Chyrp Lite (PHP) → SQLite → Página dinámica
+
+Esto significa que la disponibilidad de la base de datos es necesaria para el funcionamiento de Chyrp Lite.
+
+Informe
+
+Los detalles de la instalación, las consultas SQL, las pruebas, los ejercicios y las reflexiones se encuentran en el archivo P1.2-esteban.md.

@@ -26,6 +26,7 @@ import re
 import sqlite3
 import sys
 import unicodedata
+import hashlib
 from datetime import datetime
 from pathlib import Path
 
@@ -52,16 +53,27 @@ def fecha_chyrp(valor, por_defecto):
 
 
 def etiquetas_json(nombres):
-    """['sql', 'Árbol B'] → '{"sql":"sql","\\u00c1rbol B":"arbol-b"}'.
-
-    Es el formato exacto con el que el módulo Tags guarda las etiquetas en
-    post_attributes: un objeto JSON {nombre: slug}. Sin etiquetas guarda '[]'.
-    """
+    """Convierte etiquetas al formato de Chyrp Lite."""
     if not nombres:
         return "[]"
-    asociacion = {nombre: slugify(nombre) for nombre in nombres}
-    # PHP escribe "/" como "\/" y Python no: igualamos los bytes.
-    return json.dumps(asociacion, separators=(",", ":")).replace("/", "\\/")
+
+    asociacion = {}
+
+    for nombre in nombres:
+        nombre = str(nombre)
+        slug = slugify(nombre)
+
+        clave = "\uFE0E" + nombre if nombre.isdecimal() else nombre
+
+        if not re.search(r"[^0-9-]", slug):
+            slug = hashlib.md5(clave.encode("utf-8")).hexdigest()
+
+        asociacion[clave] = slug
+
+    return json.dumps(
+        asociacion,
+        separators=(",", ":")
+    ).replace("/", "\\/")
 
 
 def leer_entrada(path):
